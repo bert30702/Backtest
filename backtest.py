@@ -46,16 +46,21 @@ for i in range(start_time, end_time, a.period) :
 profit = 0.0
 sum = 0.0
 max_DD = 0.0
+win, lose = 0
 
 size = min(len(buy), len(sell))
 for i in range(size) :
+	if(sell[i] - buy[i] > 0) : win += 1
+	else                     : lose += 1
 	profit += sell[i] - buy[i]
 	sum += sell[i] - buy[i]
 	if(sum > 0) : sum = 0
 	max_DD = min(max_DD, sum)
 
+print('Num Trades : ' + str(size))
 print('Profit : ' + str(profit))
 print('Max DD : ' + str(max_DD))
+print('Win rate : ' + str(win / (win + lose)))
 	# print('\n'.join(map(str, getjson['result'])))
 # # f.write('\n'.join(map(str, getjson['rSesult'])))
 # # print(i)
