@@ -46,7 +46,7 @@ for i in range(start_time, end_time, a.period) :
 profit = 0.0
 sum = 0.0
 max_DD = 0.0
-win, lose = 0
+win, lose = 0, 0
 
 size = min(len(buy), len(sell))
 for i in range(size) :
