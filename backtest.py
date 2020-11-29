@@ -1,16 +1,20 @@
 import hmac
 import urllib.request
-from requests import Request
 import time
 import requests
-from bs4 import BeautifulSoup
 import json
 import datetime
+from datetime import datetime
+from bs4 import BeautifulSoup
+from requests import Request
+import os, sys
 
 import strategy
 
-def eprint(*args, **kwargs):
-    print(*args, file = sys.stderr, **kwargs)
+try :
+	os.mkdir('./data')
+except FileExistsError :
+	print('OK')
 
 a = strategy.Strategy()
 start_time = int(input('Start Time (Unix time, enter -1 to default 2019/11/28 00:00:00): '))
@@ -24,11 +28,24 @@ if(market     == '-1') : market = 'BTC-PERP'
 sell, buy = [], []
 
 for i in range(start_time, end_time, a.period) :
-	url = 'https://ftx.com/api/markets/' + market + '/candles?resolution=' + str(a.period) + '&limit=5000&start_time=' + str(i) + '&end_time=' + str(i + a.period)
-	list_req = requests.get(url)
+	try :
+		file = 'data/' + market + str(a.period) + str(i) + '.data'
+		f = open(file)
+		data = f.read()
 
-	soup = BeautifulSoup(list_req.content, "html.parser")
-	getjson = json.loads(soup.text)
+	except FileNotFoundError :
+		file = 'data/' + market + str(a.period) + str(i) + '.data'
+		url = 'https://ftx.com/api/markets/' + market + '/candles?resolution=' + str(a.period) + '&limit=5000&start_time=' + str(i) + '&end_time=' + str(i + a.period)
+		list_req = requests.get(url).content
+		soup = BeautifulSoup(list_req, "html.parser")
+
+		f = open(file, "w+")
+		f.write(soup.text)
+		data = soup.text
+
+	# print(data)
+	getjson = json.loads(data)
+
 
 	getresult = a.trade(getjson['result'][0])
 	# getresult = json.loads(result)
@@ -36,11 +53,11 @@ for i in range(start_time, end_time, a.period) :
 	close = float(getjson['result'][0]['close'])
 
 	if(len(getresult) > 0 and float(getresult[0]['amount']) < 0) :
-		print('Sell @' + str(close))
+		print('Sell @' + str(close) + ' ' + datetime.utcfromtimestamp(i).strftime('%Y-%m-%d %H:%M:%S'))
 		sell.append(close)
 
 	if(len(getresult) > 0 and float(getresult[0]['amount']) > 0) :
-		print('Buy @' + str(close))
+		print('Buy  @' + str(close) + ' ' + datetime.utcfromtimestamp(i).strftime('%Y-%m-%d %H:%M:%S'))
 		buy.append(close)
 
 profit = 0.0
